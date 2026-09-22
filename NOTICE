@@ -1,0 +1,97 @@
+solar-fast
+==========
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+Copyright holder: RedSC1
+
+
+派生关系
+--------
+
+本库是 **js-ephemeris-lite (taiyin-lite) v1.2.0**（MPL-2.0）的 C 移植，
+内层换成定点实现。以下文件是它的派生作品，同样按 MPL-2.0 授权：
+
+  sf_data.h      由 earth-series.js / moon-series.js / event-series.js /
+                 coordinates.js 的系数表生成
+  sf_series.c    级数求值 / 帧投影 / 章动 / 光行差 —— 移植自上述 JS
+  sf_solve.c     气朔牛顿求解 / 速率多项式 —— 移植自
+                 event-fast-values.js / event-rates.js / calendar-events.js
+  sf_fixed.c/.h  qfix s3 定点方案（同一条移植链）
+
+其余文件（solar_fast.h / sf_internal.h / sf_lut.h / test/ / Makefile /
+experimental/）为本项目自有，同按 MPL-2.0 发布。
+
+
+上游科学数据署名
+----------------
+
+本库携带的系数不是原创，来源如下（转述自 js-ephemeris-lite 的
+THIRD_PARTY_NOTICES.md，只列本库实际用到的三条）：
+
+1. 地球 L/B/R —— VSOP2013
+   src/planet-series.js 里 Earth 段的日心 L/B/R 系数生成自完整的
+   VSOP2013 水/金/地/火椭圆元素解，经离线坐标转换与 Fourier/多项式展开，
+   再做面向 DE441 的系数筛选（把拟合出的多项式与周期残差折进同一组级数）。
+   本库用的是其中的 386/50/475 三项配置。
+   运行时不解 Kepler 方程。Earth 表在生成时已并入库的月球位移项，
+   代表物理地月质心以外的「物理地球」。
+   参考：VSOP2013 系列论文（Francou & Simon 等）。
+
+2. 月球 L/B —— ELP/MPP02
+   src/moon-series.js 的月球级数是 ELP/MPP02（DE405 模式）系数表
+   ELP_MAIN.S1..S3 与 ELP_PERT.S1..S3 的截断+重排子集。
+   - J. Chapront and G. Francou, "The lunar theory ELP revisited.
+     Introduction of new planetary perturbations," Astronomy &
+     Astrophysics 404 (2003), 735-742.
+     DOI: https://doi.org/10.1051/0004-6361:20030529
+   - 原始系数表由 Observatoire de Paris/SYRTE 发布。
+
+   ⚠️ 上游明确声明：生成这些包所用到的 ELP/MPP02 系数文件**没有**附
+   SPDX 或其它明确的软件许可。这份声明提供出处，**不主张**原始 ELP/MPP02
+   系数文件被重新按 MPL-2.0 授权。本文件沿用同一立场。
+
+3. IAU 岁差与章动
+   实现了 IAU 2000B 章动模型（运行时 77 项全量）与 IAU 2006 平黄赤交角。
+   岁差方面，运行时**没有**直接求值论文原公式：Vondrák、Capitaine、
+   Wallace 的长期岁差表达式（8 个黄道周期项 + 14 个赤道周期项 + PA/QA/XA/YA
+   长期多项式）在构建期被离线拟合为多项式系数表（`SF_FRAME_PROJ`，源脚本
+   `experimental/gen_frames.mjs`）。准确口径是
+   **Vondrák 2011-derived polynomial surrogate over ±8000 years**，
+   不是 "Vondrák 2011"。实测替身与原公式的黄经最大差为 1.04e-6 角秒。
+   - J. Vondrák, N. Capitaine, and P. Wallace, "New precession
+     expressions, valid for long time intervals," Astronomy &
+     Astrophysics 534 (2011), A22.
+     DOI: https://doi.org/10.1051/0004-6361/201117274
+   - IAU Standards of Fundamental Astronomy: https://www.iausofa.org/
+   - SOFA 条款: https://www.iausofa.org/terms-and-conditions
+
+   SOFA 版权归 IAU Standards of Fundamental Astronomy Board 所有。
+   本项目与 js-ephemeris-lite 一样，**不是** IAU SOFA Board 提供或背书的软件。
+
+
+4. 古历归日表 —— 寿星万年历（sxwnl）
+   sf_calendar_data.h 里的历史历法归日数据出自**寿星天文历 / 寿星万年历**
+   （许剑伟），经 taiyin-ephemeris 的 C++ profile 打包后机械转换而来。
+
+     上游：https://github.com/sxwnl/sxwnl
+     版权声明：https://sxwnl.github.io/src/sm1.htm#copyright
+
+   这份表覆盖公元前 722 年至 1959 年的朔与节气归日（85485 条），是
+   **分段线性拟合 + 稀疏 ±1 天残差**的编码，不是逐条抄录的史书日表。
+   它的「平气平朔」参数取自历代律历志（春秋 / 战国 / 秦汉颛顼历 /
+   太初历 / 四分历 / 景初历 / 元嘉历 / 大明历 / 开皇历 / 大业历 / …），
+   晚期部分用开普勒方法计算后，再用一张修正表订正与史载不符的一千余处。
+
+   ⚠️ 与第 2 条同理：上游**不提供**常规 SPDX 许可，其古历数据不主张按
+   MPL-2.0 重新许可。本文件提供出处与署名，**不主张**对这些数据重新授权。
+   移植的**解码器**（sf_calendar.c 里的 hist_* 系列）是本项目自有代码。
+
+
+验证数据
+--------
+
+开发期的精度验证用了 JPL DE441（NASA/JPL 历表）与 JPL Horizons 在线服务。
+两者都**不随本仓库分发**，只出现在 offline 验证工具与结果表里。

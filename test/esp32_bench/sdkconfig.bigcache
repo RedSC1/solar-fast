@@ -1,0 +1,10 @@
+# 变体 B：把两级的 cache 都开到最大，用来判「瓶颈是不是取数」。
+#
+#   SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.bigcache" idf.py build
+#
+# ⚠️ 换默认值要先删掉 build/sdkconfig（那份是展开后的，不会自动跟着变）。
+#
+# 默认是 I=16 KB / D=32 KB。级数表合计约 100 KB，而且每次求值要顺着
+# 「分组表 → 系数表」走一遍 —— 如果工作集超过 cache，每次都从头填。
+CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB=y
+CONFIG_ESP32S3_DATA_CACHE_64KB=y

@@ -1,0 +1,29 @@
+# Local development files
+.DS_Store
+.claude/
+.venv/
+__pycache__/
+experimental/
+private/
+docs/dev_notes/
+rank.log
+
+# Host build outputs
+*.o
+test/sf_check
+test/sf_check_vs_base
+test/sf_calendar_check
+test/sf_bazi_check
+
+# ESP-IDF build outputs
+test/esp32_bench/build*/
+test/esp32_bench/sdkconfig
+test/esp32_bench/sdkconfig.old
+test/esp32_bench/managed_components/
+test/esp32_bench/dependencies.lock
+test/esp32_bench/.cache/
+test/esp32_bench/main/spa/
+
+# External ephemeris truth data
+test/truth*.csv
+*.bsp

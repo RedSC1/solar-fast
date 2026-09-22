@@ -1,0 +1,200 @@
+# 原始串口输出（变体：I-cache 32 KB / D-cache 64 KB + 月相圆盘缓存）
+# ESP32-S3 rev v0.2 @ 240 MHz，IDF v5.5.5，2026-09-20
+# 构建：SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.bigcache" idf.py build
+
+܂�����000�ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xd24
+load:0x403cb700,len:0x2eec
+entry 0x403c8924
+I (24) boot: ESP-IDF v5.5.5 2nd stage bootloader
+I (25) boot: compile time Sep 20 2026 22:41:06
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (28) boot: efuse block revision: v1.4
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 16MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00100000
+I (76) boot: End of partition table
+I (79) esp_image: segment 0: paddr=00010020 vaddr=3c040020 size=34ff0h (217072) map
+I (126) esp_image: segment 1: paddr=00045018 vaddr=3fc95500 size=02dd4h ( 11732) load
+I (129) esp_image: segment 2: paddr=00047df4 vaddr=40378000 size=08224h ( 33316) load
+I (137) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=31a7ch (203388) map
+I (175) esp_image: segment 4: paddr=00081aa4 vaddr=40380224 size=05264h ( 21092) load
+I (180) esp_image: segment 5: paddr=00086d10 vaddr=50000000 size=00020h (    32) load
+I (186) boot: Loaded app from partition at offset 0x10000
+I (186) boot: Disabling RNG early entropy source...
+I (201) cpu_start: Multicore app
+I (209) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (210) cpu_start: Pro cpu start user code
+I (210) cpu_start: cpu freq: 240000000 Hz
+I (211) app_init: Application information:
+I (215) app_init: Project name:     sf_esp32_bench
+I (220) app_init: App version:      893aae7-dirty
+I (224) app_init: Compile time:     Sep 20 2026 22:41:30
+I (229) app_init: ELF file SHA256:  a0bf31dcb...
+I (234) app_init: ESP-IDF:          v5.5.5
+I (237) efuse_init: Min chip rev:     v0.0
+I (241) efuse_init: Max chip rev:     v0.99 
+I (245) efuse_init: Chip rev:         v0.2
+I (249) heap_init: Initializing. RAM available for dynamic allocation:
+I (255) heap_init: At 3FCB1BE0 len 00037B30 (222 KiB): RAM
+I (260) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (266) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (272) spi_flash: detected chip: mxic
+I (274) spi_flash: flash io: dio
+I (277) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (284) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (290) main_task: Started on CPU0
+I (320) main_task: Calling app_main()
+
+=========================================================
+  solar-fast 真机基准 —— 值越小越好，min 那列最可信
+=========================================================
+
+== §0 环境 ==
+  芯片                 ESP32-S3 rev v0.2，2 核
+  CPU 主频             240 MHz
+  IDF                    v5.5.5
+  内部 RAM 空闲      238316 B
+  sizeof(ui_app)         3720 B
+  帧缓冲              40960 B = 40 KB
+  sizeof(sf_bazi_chart)  78 B
+
+== §0b 计时器开销（下面每一行都含它） ==
+  操作                              min    中位       max   每轮遍数
+  （单位 µs）                                           
+  空函数（量的是 esp_timer 的噪声） 0.06  0.06  0.06   x10000 
+
+== §1 库单元操作（净耗时，已扣掉计时器开销） ==
+  操作                              min    中位       max   每轮遍数
+  （单位 µs）                                           
+  -- 时间换算 --
+  sf_julian_day_ut               6.56  6.56  6.56   x789   
+  sf_tt_to_ut                    89.20  89.20  89.20   x229   
+  sf_utc_to_ut1                  46.81  46.81  46.82   x416   
+  sf_ut_to_tt                    44.38  44.38  44.38   x638   
+  -- 日月位置（每帧都算的那几个）--
+  sf_sun_apparent_longitude      640.82  640.82  640.97   x38    
+  sf_sun_apparent_latitude       556.06  556.06  556.13   x48    
+  sf_sun_distance                398.75  398.75  398.75   x73    
+  sf_elongation                  4181.86  4187.14  4211.43   x7     
+  sf_sun_ra_dec                  1380.00  1380.00  1381.42   x12    
+  sf_moon_ra_dec                 4764.17  4764.83  4770.83   x6     
+  -- 单个气/朔事件 --
+  sf_solar_term_time (直接)    1495.40  1495.40  1498.10   x10    
+  sf_lunar_phase_time (直接)   5657.40  5668.40  5688.20   x5     
+  sf_solve_solar_term (求解)   1511.91  1511.91  1516.73   x11    
+  sf_solve_lunar_phase (求解)  5786.60  5788.00  5797.80   x5     
+  -- 历法/节气 --
+  sf_cal_from_instant_ut (农历) 146553.00  146609.00  146731.00   x1     
+  sf_cal_get_specific_term       5200.25  5201.50  5202.00   x4     
+  sf_cal_find_term               7577.67  7577.67  7583.33   x3     
+  sf_ganzhi_four_pillars         12814.50  12814.50  12831.00   x2     
+  -- 出没 --
+  sf_sun_rise_set                275855.00  276001.00  276017.00   x1     
+  sf_day_length_hours            275915.00  276051.00  276065.00   x1     
+  -- 整年气朔表（换年 / 改精度才重建）--
+  sf_qishuo_year_run (HIGH)      263024.00  263147.00  263335.00   x1     
+  -- 八字 --
+  sf_bazi_chart_run (排盘)     12815.00  12815.00  12866.00   x2     
+  sf_bazi_qi_yun (起运)        15246.00  15246.00  15291.00   x1     
+  sf_bazi_da_yun (大运 10 步) 843.91  843.94  843.94   x33    
+  sf_bazi_flow_year (纯整数)  0.34  0.34  0.34   x2000  
+  sf_bazi_flow_month (纯整数) 0.40  0.40  0.40   x2000  
+  sf_bazi_flow_day (纯整数)   3.17  3.17  3.17   x1500  
+  sf_bazi_flow_hour (纯整数)  0.32  0.32  0.32   x2000  
+  -- 运限「流日」整层（2 个节 + 整月逐日）--
+  运限·流日那一层        11089.50  11089.50  11104.50   x2     
+
+== §5 精度档（LOW = 最省那档；HIGH = 现在 UI 用的默认） ==
+  操作                              min    中位       max   每轮遍数
+  （单位 µs）                                           
+  -- 现有旋钮：整年气朔表（UI「气朔精度」真能按到）--
+  year_run ACC_LOW               141610.00  141655.00  141670.00   x1     
+  year_run ACC_MED               152742.00  152824.00  152869.00   x1     
+  year_run ACC_HIGH              263178.00  263205.00  263305.00   x1     
+  -- 太阳黄经（UI 这条路没有旋钮）--
+  sunlon L48                     263.63  263.63  263.73   x64    
+  sunlon L129                    350.96  350.96  351.09   x54    
+  sunlon 全量                  725.06  725.06  731.56   x18    
+  -- 距角（主页月相盘那块）--
+  elong LOW                      438.33  438.33  438.44   x57    
+  elong MED                      665.21  665.21  666.06   x33    
+  elong 全量                   4716.14  4716.71  4753.71   x7     
+  -- 月亮位置（出没、月相朝向）--
+  moon_ra_dec LOW                519.11  519.11  522.44   x27    
+  moon_ra_dec MED                770.82  770.82  771.96   x28    
+  moon_ra_dec 全量             4323.14  4327.14  4338.14   x7     
+  -- 单个事件求解 --
+  solve_term LOW                 1167.56  1167.56  1168.06   x18    
+  solve_term MED                 1257.20  1257.20  1257.50   x20    
+  solve_term 全量              1676.42  1676.42  1680.33   x12    
+  solve_phase LOW                2060.36  2060.36  2063.55   x11    
+  solve_phase MED                2323.64  2323.64  2330.09   x11    
+  solve_phase 全量             6484.40  6495.00  6502.20   x5     
+
+== §7 归因（把范围缩小到某一步） ==
+  操作                              min    中位       max   每轮遍数
+  （单位 µs）                                           
+  sf_nutation_iau2000b (定点)  114.43  114.43  114.59   x75    
+  sf_nutation_iau2000b_dbl       1973.93  1973.93  1974.14   x14    
+  章动只取 9 项（定点） 52.51  52.51  52.51   x200   
+  sf_mean_obliquity              7.07  7.07  7.07   x200   
+  太阳黄经（几何，无章动） 681.21  681.21  685.05   x19    
+  sf_solar_rate                  246.60  246.60  246.61   x103   
+  sf_elongation_rate             497.33  497.33  497.33   x52    
+
+== §2 一帧（便携 UI 层，headless） ==
+  操作                              min    中位       max   每轮遍数
+  （单位 µs）                                           
+  -- ui_app_tick 的五种形态 --
+  tick·稳态（每帧）       10828.00  10828.50  10832.00   x2     
+  tick·跨节气/跨日（~50 解） 579907.00  580181.00  580589.00   x1     
+  tick·换年（整年表）    276082.00  276141.00  276440.00   x1     
+  tick·排盘（八字全链） 33439.00  33450.00  33466.00   x1     
+  tick·流日（2 节 + 整月） 21725.00  21766.00  21790.00   x1     
+  -- ui_render 逐页（画进调用方给的帧缓冲）--
+  render 万年历·第0页      1297.00  1297.00  1316.50   x2     
+  render 万年历·第1页      1006.23  1006.23  1006.91   x22    
+  render 万年历·第2页      2144.55  2145.64  2147.36   x11    
+  render 万年历·第3页      2054.83  2054.83  2057.25   x12    
+  render 万年历·第4页      1354.29  1354.29  1356.79   x14    
+  render 万年历·第5页      860.86  860.86  862.81   x21    
+  render 八字·第0页         808.19  808.19  808.31   x32    
+  render 八字·第1页         868.69  868.69  868.73   x26    
+  render 八字·第2页         466.78  466.78  466.85   x54    
+  render 八字·第3页         739.55  739.55  739.55   x38    
+  -- 稳态整帧（tick + render）--
+  tick + render（主页一帧） 13491.50  13493.00  13569.00   x2     
+
+== §3 double vs float（每元素，ns） ==
+  乘加    double 630.00 ns      float 33.28 ns      倍数 18.93x
+  除法    double 2554.14 ns      float 266.09 ns      倍数 9.60x
+  sqrt      double 4552.73 ns      float 362.42 ns      倍数 12.56x
+  sin       double 8184.69 ns      float 735.63 ns      倍数 11.13x
+  cos       double 8225.47 ns      float 729.38 ns      倍数 11.28x
+  atan2     double 14470.70 ns      float 1417.89 ns      倍数 10.21x
+  exp       double 8546.80 ns      float 916.56 ns      倍数 9.32x
+  pow       double 32980.31 ns      float 2697.97 ns      倍数 12.22x
+
+== §4 没有量、只能算的那一项：把帧推给屏 ==
+  帧缓冲 40960 B = 327680 bit（RGB565，跟 ST7735S 的像素格式一致，无需转换）
+  SPI 40 MHz → 8.19 ms    SPI 80 MHz → 4.10 ms
+  ⚠️ 上表是**算出来的**（按 DQ 满速），不是量出来的；真机上还要加
+     驱动开销 + DMA 排队，实测请接屏后另测。
+
+=========================================================
+  完。把整段串口输出贴回会话即可。
+=========================================================
+I (40880) main_task: Returned from app_main()

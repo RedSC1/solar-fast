@@ -1,0 +1,41 @@
+# ⚠️ target 必须写在这儿。`idf.py set-target esp32s3` 会把它写进 sdkconfig，
+# 但 sdkconfig 是**展开后的产物**、通常不进仓库 —— 一旦删掉它重新生成
+# （比如为了换 SDKCONFIG_DEFAULTS 试别的变体），target 就悄悄退回 IDF 默认的
+# esp32，编出来的固件烧不上：「This chip is ESP32-S3, not ESP32」。
+CONFIG_IDF_TARGET="esp32s3"
+
+# ⚠️⚠️ 这两行不写，测出来的数字**会无端慢 1.5～3 倍**，而且看不出来。
+# 基准测试里最容易骗人的从来不是被测代码，是编译配置。
+
+# 1) 主频。ESP32-S3 的 IDF 默认是 **160 MHz**（不是 240）——
+#    不显式打开，你会拿着一颗降频 33% 的芯片下结论。
+#    想对比 160 就换成 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_160=y 重跑一遍。
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+
+# 2) 优化级别。IDF 的默认是个**调试友好**的配置（-Og + 断言全开），
+#    跟发布固件的代码生成差得很远。基准必须开 -O2。
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# 这块板子：ESP32-S3-WROOM-1 N16R8（16 MB flash / 8 MB PSRAM）。
+# ⚠️ 这个基准**不用 PSRAM**：40 KB 帧缓冲放内部 SRAM 就够了，
+#    而 PSRAM 访问慢得多（走 cache + SPI），拿它测帧率是另一回事。
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+
+# 串口按 115200 打表格够用，且最不易出错。
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+
+# 基准里有一段连续跑几十毫秒的循环；任务看门狗盯着 IDLE 任务，
+# 主任务不让出就会判定「饿死」并复位。bench.c 每段之间主动 vTaskDelay，
+# 这里把超时放宽一点，免得偶尔的 GC/中断抖动把它顶穿。
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=30
+
+# 主任务栈：bench.c 里有几个几十字节的局部数组 + printf，默认 3584 B 有点紧。
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# ⚠️ 别开 nano 格式化。bench.c 刻意**不用 %f**（自己拼整数+两位小数），
+#    就是为了不受这个开关影响 —— 但**便携 UI 层里 %f 用得很密**
+#    （阳页要 `%.4f°`、`%.5f AU`），开了 nano 那一页在真机上就是空白。
+#    IDF 5.5 里这个符号叫 CONFIG_LIBC_NEWLIB_NANO_FORMAT，旧名是别名，
+#    两个都留着；默认本来就是关的，写出来是为了别被人顺手打开。
+CONFIG_NEWLIB_NANO_FORMAT=n
+CONFIG_LIBC_NEWLIB_NANO_FORMAT=n
