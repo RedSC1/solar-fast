@@ -28,8 +28,9 @@ experimental/）为本项目自有，同按 MPL-2.0 发布。
 上游科学数据署名
 ----------------
 
-本库携带的系数不是原创，来源如下（转述自 js-ephemeris-lite 的
-THIRD_PARTY_NOTICES.md，只列本库实际用到的三条）：
+本库使用的模型、系数和历史数据来源如下。相关生成与整理过程也记录在
+同一作者维护的 js-ephemeris-lite 的 THIRD_PARTY_NOTICES.md 中；
+这里只列本库实际用到的四项：
 
 1. 地球 L/B/R —— VSOP2013
    src/planet-series.js 里 Earth 段的日心 L/B/R 系数生成自完整的
@@ -88,6 +89,39 @@ THIRD_PARTY_NOTICES.md，只列本库实际用到的三条）：
    ⚠️ 与第 2 条同理：上游**不提供**常规 SPDX 许可，其古历数据不主张按
    MPL-2.0 重新许可。本文件提供出处与署名，**不主张**对这些数据重新授权。
    移植的**解码器**（sf_calendar.c 里的 hist_* 系列）是本项目自有代码。
+
+
+Astronomy Engine 日月出没搜索
+------------------------------
+
+`rise/sf_rise.c` 的有界递归二分兜底改写自 Don Cross 的 Astronomy Engine
+`FindAscent` / `MaxAltitudeSlope` 思路，并沿用了其 0.42 天种子窗口、
+17 层递归上限及日月赤经/赤纬变化率界。这里的实现另行处理全天所有穿越、
+蒙气差判据、根分类和网格兜底，并非原代码的逐字复制。
+
+Upstream: https://github.com/cosinekitty/astronomy
+
+MIT License
+
+Copyright (c) 2019-2023 Don Cross <cosinekitty@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 验证数据

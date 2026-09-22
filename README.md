@@ -4,15 +4,19 @@
 
 ## English
 
-`solar-fast` is a portable C99 library for solar and lunar positions, rise/set,
-solar terms, lunar phases, the Chinese calendar, and BaZi. It uses no dynamic
-allocation. Its series evaluator combines Q31 phase arithmetic with a sine
-lookup table to reduce software `double` work on microcontrollers such as the
-ESP32-S3.
+`solar-fast` is a portable C99 library designed for embedded devices such as
+the ESP32. It calculates solar and lunar positions, rise/set times, solar terms,
+lunar phases, the Chinese calendar, and Ganzhi and related traditional
+astrological calculations. It uses no dynamic allocation. Its series evaluator
+combines Q31 phase arithmetic with a sine lookup table to reduce software
+`double` work on microcontrollers such as the ESP32-S3.
 
 The model's tested long-range window is approximately 6000 BCE–10000 CE
 (J2000 ±8000 years). Calls outside that window are extrapolations; the range
 is not a hard API cutoff or a precision guarantee.
+
+Planned: add position calculations for the other planets and Pluto. These are
+not part of the current public API.
 
 ### Build and use
 
@@ -114,12 +118,15 @@ review their rights before redistribution or commercial use.
 
 ## 中文
 
-`solar-fast` 是无动态内存分配的可移植 C99 库，提供日月位置、日月出没、
-节气月相、中国农历和八字计算。级数求值采用 Q31 相位运算和正弦查表，
-减少 ESP32-S3 等无硬件双精度浮点 MCU 上的 `double` 运算。
+`solar-fast` 是专为 ESP32 等嵌入式设备设计的可移植 C99 库，无动态内存分配，
+提供日月位置、日月出没、节气月相、中国农历和八字计算。级数求值采用
+Q31 相位运算和正弦查表，减少 ESP32-S3 等无硬件双精度浮点 MCU 上的
+`double` 运算。
 
 已测试的长期窗口约为公元前 6000 年至公元 10000 年（J2000 ±8000 年）。
 窗口外仍可外推，但不保证精度；这不是 API 的硬截止范围。
+
+后续计划接入其他行星及冥王星的位置计算；当前公开 API 尚不提供这些功能。
 
 ### 构建与调用
 

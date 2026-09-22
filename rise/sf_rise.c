@@ -880,7 +880,8 @@ static int sf_rise_set_partition(const sf_rise_ctx_t *c, double start, double en
 /* ==================================================================
  * 兜底：**有界递归二分**，不是整天盲扫
  *
- * 结构取自 cosinekitty / Astronomy Engine 的 FindAscent。该实现整个出没求解
+ * 基于 cosinekitty / Astronomy Engine 的 FindAscent 思路改写；许可见 NOTICE。
+ * 上游实现的整个出没求解
  * 只有这一层，因为它本身就是兜底质量：靠一个**与星历无关**的斜率上界，
  * 把「是否继续细分」变成有证明的判据，而非「采样够密就行」的经验假设。
  *

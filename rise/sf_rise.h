@@ -153,8 +153,8 @@ void sf_rise_opts_default(sf_rise_opts_t *o);
  *      驻点大致在中天；把窗口内的中天解出来连同两端排序，相邻两点之间
  *      判据接近单调 —— 数符号变化即数穿越次数。一天二十几次求值。
  *
- *   2. **有界递归二分**（兜底）。`FindAscent` 结构，取自 cosinekitty /
- *      Astronomy Engine。靠一个**与星历无关**的斜率上界
+ *   2. **有界递归二分**（兜底）。基于 cosinekitty / Astronomy Engine
+ *      `FindAscent` 思路改写（许可见 NOTICE）。靠一个**与星历无关**的斜率上界
  *          |d(判据)/dt| ≤ [|(360.9856° − Δα̇)·cosφ| + |δ̇·sinφ|] × 1.5
  *      做 Nyquist 剪枝：两端同号且都离零够远 ⇒ 判据来不及跑到零再回来 ⇒
  *      整段否掉。其余一律细分，直到区间窄于 1 秒，再在那一秒里二分到底。
